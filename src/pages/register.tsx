@@ -13,7 +13,6 @@ export default function Register() {
     useState<boolean>(false);
   const [passwordError, setPasswordError] = useState<boolean>(false);
 
-  
   async function handleRegister() {
     setAlreadyRegistered(false);
     setUsernameMissingError(false);
@@ -43,6 +42,8 @@ export default function Register() {
           password,
         }
       );
+      localStorage.removeItem("jwt");
+      localStorage.removeItem("username");
       Router.push("/login");
     } catch (error) {
       setAlreadyRegistered(true);
