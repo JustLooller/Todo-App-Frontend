@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
+import {
+  getRequestWithAuthHeader,
+  postRequestWithAuthHeader,
+} from "@/utils/apiRequests";
 
 interface Props {
   id: number;
@@ -53,143 +57,85 @@ function Todo(props: Props) {
       setEmptyTitleError(true);
       return;
     }
-    const config = {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("jwt"),
-      },
-    };
-    const result = await axios
-      .post(
-        "http://localhost:8000/api/todos/update",
-        { todo_Id: id, title: newTitle, body: newBody },
-        config
+    const result = await postRequestWithAuthHeader(
+      "http://localhost:8000/api/todos/update",
+      { todo_Id: id, title: newTitle, body: newBody }
+    );
+    const editedTodo = result!.data.data;
+    props.setTodos((prevTodos: Todo[]) =>
+      prevTodos.map((todo) =>
+        todo.Todo_ID === editedTodo.Todo_ID
+          ? {
+              ...todo,
+              Title: editedTodo.Title,
+              Body: editedTodo.Body,
+              Last_Update_Time: editedTodo.Last_Update_Time,
+            }
+          : todo
       )
-      .then((res) => {
-        const editedTodo = res.data.data;
-        console.log(editedTodo);
-        props.setTodos((prevTodos: Todo[]) =>
-          prevTodos.map((todo) =>
-            todo.Todo_ID === editedTodo.Todo_ID
-              ? {
-                  ...todo,
-                  Title: editedTodo.Title,
-                  Body: editedTodo.Body,
-                  Last_Update_Time: editedTodo.Last_Update_Time,
-                }
-              : todo
-          )
-        );
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    );
     setIsEditing(false);
   };
   const handleDeleteTodo = async (id: number) => {
-    const config = {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("jwt"),
-      },
-    };
-    const result = await axios
-      .post("http://localhost:8000/api/todos/delete", { todo_Id: id }, config)
-      .then((res) => {
-        const todoToDelete = res.data.data;
-        if (todoToDelete === 1) {
-          if (props.whichTodos) {
-            props.setBinTodos((prevTodos: Todo[]) =>
-              prevTodos.filter((todo: Todo) => todo.Todo_ID !== id)
-            );
-          }
-          else{
-            props.setTodos((prevTodos: Todo[]) =>
-              prevTodos.filter((todo: Todo) => todo.Todo_ID !== id)
-            );
-          }
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    const result = await postRequestWithAuthHeader(
+      "http://localhost:8000/api/todos/delete",
+      { todo_Id: id }
+    );
+    const todoToDelete = result!.data.data;
+    if (todoToDelete === 1) {
+      if (props.whichTodos) {
+        props.setBinTodos((prevTodos: Todo[]) =>
+          prevTodos.filter((todo: Todo) => todo.Todo_ID !== id)
+        );
+      } else {
+        props.setTodos((prevTodos: Todo[]) =>
+          prevTodos.filter((todo: Todo) => todo.Todo_ID !== id)
+        );
+      }
+    }
   };
   const markAsDone = async (id: number) => {
-    const config = {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("jwt"),
-      },
-    };
-    const result = await axios
-      .post(
-        "http://localhost:8000/api/todos/markAsDone",
-        { todo_Id: id },
-        config
-      )
-      .then((res) => {
-        const todoToMarkAsDone = res.data.data;
-        if (todoToMarkAsDone) {
-          props.setTodos((prevTodos: Todo[]) =>
-            prevTodos.map((todo: Todo) =>
-              todo.Todo_ID === todoToMarkAsDone.Todo_ID
-                ? {
-                    ...todo,
-                    Status: todoToMarkAsDone.Status,
-                  }
-                : todo
-            )
-          );
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    const result = await postRequestWithAuthHeader(
+      "http://localhost:8000/api/todos/markAsDone",
+      { todo_Id: id }
+    );
+    const todoToMarkAsDone = result!.data.data;
+    if (todoToMarkAsDone) {
+      props.setTodos((prevTodos: Todo[]) =>
+        prevTodos.map((todo: Todo) =>
+          todo.Todo_ID === todoToMarkAsDone.Todo_ID
+            ? {
+                ...todo,
+                Status: todoToMarkAsDone.Status,
+              }
+            : todo
+        )
+      );
+    }
   };
   const handleRestoreTodo = async (id: number) => {
-    const config = {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("jwt"),
-      },
-    };
-    const result = await axios
-      .post(
-        "http://localhost:8000/api/todos/recoverFromBin",
-        { todo_Id: id },
-        config
-      )
-      .then((res) => {
-        const todoToRecover = res.data.data;
-        if (todoToRecover) {
-          props.setBinTodos((prevTodos: Todo[]) =>
-            prevTodos.filter((todo) => todo.Todo_ID !== todoToRecover.Todo_ID)
-          );
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    const result = await postRequestWithAuthHeader(
+      "http://localhost:8000/api/todos/recoverFromBin",
+      { todo_Id: id }
+    );
+    const todoToRecover = result!.data.data;
+    if (todoToRecover) {
+      props.setBinTodos((prevTodos: Todo[]) =>
+        prevTodos.filter((todo) => todo.Todo_ID !== todoToRecover.Todo_ID)
+      );
+    }
   };
   const handleMoveToBin = async (id: number) => {
-    const config = {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("jwt"),
-      },
-    };
-    const result = await axios
-      .post(
-        "http://localhost:8000/api/todos/moveToBin",
-        { todo_Id: id },
-        config
-      )
-      .then((res) => {
-        const binnedTodo = res.data.data;
-        if (binnedTodo) {
-          props.setTodos((prevTodos: Todo[]) =>
-            prevTodos.filter((todo) => todo.Todo_ID !== binnedTodo.Todo_ID)
-          );
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    const result = await postRequestWithAuthHeader(
+      "http://localhost:8000/api/todos/moveToBin",
+      { todo_Id: id }
+    );
+    const binnedTodo = result!.data.data;
+    if (binnedTodo) {
+      props.setTodos((prevTodos: Todo[]) =>
+        prevTodos.filter((todo) => todo.Todo_ID !== binnedTodo.Todo_ID)
+      );
+    }
   };
   function conditionalColorRender(status: boolean): string {
     return status

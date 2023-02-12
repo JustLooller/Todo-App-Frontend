@@ -3,6 +3,10 @@ import { Router, useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
 import Todo from "@/components/Todo";
 import React from "react";
+import {
+  getRequestWithAuthHeader,
+  postRequestWithAuthHeader,
+} from "@/utils/apiRequests";
 
 export default function Homepage() {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -14,46 +18,6 @@ export default function Homepage() {
 
   const router = useRouter();
 
-  const getTodos = async (username: string, token: string) => {
-    const config = {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    };
-    const response = await axios
-      .post(
-        "http://localhost:8000/api/todos/all",
-        { username: username },
-        config
-      )
-      .then((res) => {
-        setTodos(res.data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-  const getTodosFromBin = async (username: string, token: string) => {
-    const config = {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    };
-    const response = await axios
-      .post(
-        "http://localhost:8000/api/todos/getFromBin",
-        { username: localStorage.getItem("username") },
-        config
-      )
-      .then((res) => {
-        setBinTodos(res.data.data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
   interface Todo {
     Todo_ID: number;
     Title: string;
@@ -64,14 +28,28 @@ export default function Homepage() {
     InRecycleBin: boolean;
   }
 
+
+  const getTodos = async () => {
+    const response = await getRequestWithAuthHeader(
+      "http://localhost:8000/api/todos/all"
+    );
+    setTodos(response?.data);
+  };
+  const getTodosFromBin = async () => {
+    const response = await getRequestWithAuthHeader(
+      "http://localhost:8000/api/todos/getFromBin"
+    );
+    setBinTodos(response?.data.data);
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("jwt");
     if (!token) {
       router.push("/login");
     }
     const username = localStorage.getItem("username");
-    getTodos(username!, token!);
-    getTodosFromBin(username!, token!);
+    getTodos();
+    getTodosFromBin();
   }, []);
 
   const handleAddTodo = async (title: string, body?: string) => {
@@ -81,30 +59,18 @@ export default function Homepage() {
       setTitleEmptyError(true);
       return;
     }
-    const config = {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("jwt"),
-      },
-    };
-    const result = await axios
-      .post(
-        "http://localhost:8000/api/todos/add",
-        {
-          title: title,
-          username: localStorage.getItem("username"),
-          body: body,
-        },
-        config
-      )
-      .then((res) => {
-        const newTodo = res.data.data;
-        setTodos((prevTodos) => prevTodos.concat(newTodo));
-        setTitle("");
-        setBody("");
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    const response = await postRequestWithAuthHeader(
+      "http://localhost:8000/api/todos/add",
+      {
+        title: title,
+        username: localStorage.getItem("username"),
+        body: body,
+      }
+    );
+    const newTodo = response!.data.data;
+    setTodos((prevTodos) => prevTodos.concat(newTodo));
+    setTitle("");
+    setBody("");
   };
 
   const handleLogout = () => {
@@ -114,9 +80,9 @@ export default function Homepage() {
   };
 
   const handleClickOnRecycleBin = () => {
-      getTodos(localStorage.getItem("username")!, localStorage.getItem("jwt")!)
-      getTodosFromBin(localStorage.getItem("username")!, localStorage.getItem("jwt")!)
-      setWhichTodos(!whichTodos);
+    getTodos();
+    getTodosFromBin();
+    setWhichTodos(!whichTodos);
   };
 
   return (
@@ -129,7 +95,7 @@ export default function Homepage() {
           Logout
         </button>
         <button
-          className=" bg-gray-300 border border-gray-400 hover:bg-gray-500 hover:shadow-xl text:black focus:outline-none focus:ring-0 active:bg-gray-600 active:shadow-lg transition duration-150 ease-in-out uppercase font-medium text-xs rounded-lg px-10 py-2"
+          className="mr-3 bg-gray-300 border border-gray-400 hover:bg-gray-500 hover:shadow-xl text:black focus:outline-none focus:ring-0 active:bg-gray-600 active:shadow-lg transition duration-150 ease-in-out uppercase font-medium text-xs rounded-lg px-10 py-2"
           onClick={() => handleClickOnRecycleBin()}
         >
           {whichTodos ? <>Home</> : <>Recycle Bin</>}
@@ -171,7 +137,7 @@ export default function Homepage() {
 
         <div className="grid grid-cols-4 gap-5 py-20">
           {whichTodos
-            ? (binTodos &&
+            ? binTodos &&
               binTodos.map((todo: Todo) => {
                 return (
                   <Todo
@@ -188,7 +154,7 @@ export default function Homepage() {
                     whichTodos={whichTodos}
                   />
                 );
-              }))
+              })
             : todos &&
               todos.map((todo: Todo) => {
                 return (

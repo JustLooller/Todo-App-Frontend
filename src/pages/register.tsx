@@ -12,12 +12,14 @@ export default function Register() {
   const [usernameMissingError, setUsernameMissingError] =
     useState<boolean>(false);
   const [passwordError, setPasswordError] = useState<boolean>(false);
+
+  
   async function handleRegister() {
     setAlreadyRegistered(false);
     setUsernameMissingError(false);
     setPasswordError(false);
     setPasswordMatchError(false);
-    
+
     if (username.length === 0) {
       setUsernameMissingError(true);
       return;
@@ -27,24 +29,25 @@ export default function Register() {
       setPasswordMatchError(true);
       return;
     }
-    
 
     if (!validatePassword(password)) {
-      setPasswordError(true)
+      setPasswordError(true);
       return;
     }
 
-    const response = await axios
-      .post("http://localhost:8000/api/user/register", {
-        username,
-        password,
-      })
-      .then(() => {
-        Router.push("/login");
-      })
-      .catch(() => {
-        setAlreadyRegistered(true);
-      });
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/api/user/register",
+        {
+          username,
+          password,
+        }
+      );
+      Router.push("/login");
+    } catch (error) {
+      setAlreadyRegistered(true);
+      console.log(error);
+    }
   }
 
   return (
@@ -94,7 +97,9 @@ export default function Register() {
               <p> Please insert a valid username</p>
             ) : null}
             {passwordError ? (
-              <p> Your password does not meet the minimum requirements, which are:
+              <p>
+                {" "}
+                Your password does not meet the minimum requirements, which are:
                 <li>8 letters long</li>
                 <li>At least 1 Uppercase letter</li>
                 <li>At least 1 Lowercase letter</li>

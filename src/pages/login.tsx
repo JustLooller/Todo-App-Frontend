@@ -16,24 +16,23 @@ export default function Login() {
       return;
     }
 
-    const response = await axios
+    try {
+      const response = await axios
       .post("http://localhost:8000/api/user/login", {
         username,
         password,
-      })
-      .then((response) => {
-        if (response.data.status === "success") {
-          console.log(response);
-          localStorage.setItem("jwt", response.data.token);
-          localStorage.setItem("username", username);
-          Router.push({
-            pathname: "/homepage",
-          });
-        }
-      })
-      .catch((err) => {
-        setUserNotFound(true);
       });
+      if (response.data.status === "success") {
+        console.log(response);
+        localStorage.setItem("jwt", response.data.token);
+        localStorage.setItem("username", username);
+        Router.push({
+          pathname: "/homepage",
+        });
+      }
+    } catch (error) {
+      setUserNotFound(true);
+    }
   }
 
   useEffect(() => {
