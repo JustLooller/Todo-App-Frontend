@@ -87,7 +87,7 @@ export default function Homepage() {
 
   return (
     <>
-      <NextSeo title="ToDoba" description="Homepage"/>
+      <NextSeo title="Homepage" description="Homepage" />
       <div className="min-h-screen decoration-clone bg-gradient-to-bl from-gray-400 to-gray-700 h-full w-full">
         <div className="p-10 flex flex-row-reverse">
           <button

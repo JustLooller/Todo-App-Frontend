@@ -8,12 +8,12 @@ export default function Landing() {
 
   return (
     <>
-      <NextSeo title="Welcome to ToDoba!" description="landing page" />
+      <NextSeo title="Welcome!" description="landing page" />
       <div className="min-h-screen decoration-clone bg-gradient-to-bl from-gray-400 to-gray-700 h-full w-full">
         <div className="container h-full w-full mx-auto flex flex-col justify-center py-10  ">
           <div className="bg-gray-800 w-full mx-auto py-8 px-8 rounded-md shadow-lg">
             <h1 className="text-4xl text-white font-bold text-center">
-              Welcome to ToDoba!
+              Welcome!
             </h1>
             <div className="w-full flex justify-evenly text-black py-7 ">
               <button
